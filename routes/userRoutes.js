@@ -15,7 +15,7 @@ const ensureSingleAdmin = async () => {
 };
 
 //Get all the users
-router.get('/userlist', async(req, res)=>{
+router.get('/', async(req, res)=>{
   try{
     const Users = await User.find({}, 'name role -_id')
 

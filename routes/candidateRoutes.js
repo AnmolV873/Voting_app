@@ -107,14 +107,34 @@ router.delete('/:candidateID',jwtAuthMiddleware, async(req, res)=>{
     }
 })
 
+//Check the time whether it is right time to vote or not
+const checkVotingTime = (req, res, next) => {
+    const currentTime = new Date();
+    
+    // Set the start and end time for voting
+    const startTime = new Date();
+    const endTime = new Date();
+    
+    startTime.setHours(18, 0, 0); // 6:00 PM
+    endTime.setHours(18, 30, 0);  // 6:30 PM
+
+    // Check if the current time is within the voting window
+    if (currentTime >= startTime && currentTime <= endTime) {
+        next(); // Continue to the next middleware if the time is valid
+    } else {
+        return res.status(403).json({ message: 'Voting is only allowed between 6:00 PM and 6:30 PM' });
+    }
+};
 
 //Start Voting
-router.post('/vote/:candidateID', jwtAuthMiddleware, async (req, res)=>{
+router.post('/vote/:candidateID', jwtAuthMiddleware, checkVotingTime, async (req, res)=>{
 
     const candidateID = req.params.candidateID;
     const userId = req.user.id;
 
     try{
+
+
         //Find the Candidate document with the specified candidateI
         const candidate = await Candidate.findById(candidateID);
         if(!candidate){
