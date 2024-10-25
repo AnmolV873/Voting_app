@@ -13,9 +13,10 @@ const MongoURL = process.env.MONGODB_URL;
 //     useUnifiedTopology: true,
 
 // });
-mongoose.connect(MongoURL)
-    .then(() => console.log('Connected to MongoDB server'))
-    .catch((err) => console.log('MongoDB connection error:', err));
+mongoose.connect(MongoURL, {
+})
+.then(() => console.log('Connected to MongoDB server'))
+.catch((err) => console.log('MongoDB connection error:', err));
 
 const db = mongoose.connection;
 

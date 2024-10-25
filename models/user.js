@@ -37,7 +37,9 @@ const UserSchema = new mongoose.Schema({
         default: false
     },
     ward:{
-        enum:['']
+        type: String,
+        enum:['ward1', 'ward2', 'ward3', 'ward4'],
+        required: true
     }
 });
 

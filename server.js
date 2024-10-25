@@ -10,8 +10,6 @@ app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 3000;
 
-
-
 //Import the routes
 const UserRoutes = require('./routes/userRoutes');
 const candidateRoutes = require('./routes/candidateRoutes');

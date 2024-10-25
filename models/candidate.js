@@ -14,6 +14,11 @@ const candidateSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    ward:{
+        type: String,
+        enum: ['ward1', 'ward2', 'ward3', 'ward4'],
+        required: true
+    },
     votes: [
         {
             users:{

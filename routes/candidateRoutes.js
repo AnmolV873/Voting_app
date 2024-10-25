@@ -18,6 +18,20 @@ const checkAdminRole = async (userId) => {
     }
 };
 
+const checkCandidateWard = async(ward, party)=>{
+    try{
+        const existingCandidate = await Candidate.findOne({ ward , party});
+        if(existingCandidate){
+            return {exists:true, message: "the candidate from this ward already exist."}
+        }else{
+            return {exists: false}
+        }
+    }catch(err){
+        console.log(err);
+        return err
+    }
+};
+
 //Get all the candidates with their Name and party
 router.get('/candidatesList', async(req, res)=>{
 
@@ -35,27 +49,36 @@ router.get('/candidatesList', async(req, res)=>{
 
 
 //POST route method to add a candidate
-router.post('/', jwtAuthMiddleware, async(req, res)=>{
+router.post('/', jwtAuthMiddleware,
+     async(req, res)=>{
     try{
+
+        //Only Admin can register a candidate
         const isAdmin = await checkAdminRole(req.user.id);
         if(!isAdmin){
             return res.status(403).json({message: 'user has not admin role'});
         }
 
-      const data = req.body //assuming request body contain candidate data
+        const {ward, party,  ...otherData} = req.body //assuming request body contain candidate data
+
+        //Check if a Candidate already exist from that ward.
+        const checkWard = await checkCandidateWard(ward, party);
+        if (checkWard.exists) {
+            return res.status(400).json({ message: checkWard.message });
+        }
 
       //Create a new Candidate document using the Mongoose model
-      const newCandidate = new Candidate(data);
+        const newCandidate = new Candidate({ward,party,  ...otherData});
       
       // Save the new User to the database
-      const response = await newCandidate.save();
-      console.log('Data saved');
-      res.status(200).json({response: response});
+        const response = await newCandidate.save();
+        console.log('Data saved');
+        res.status(200).json({response: response});
     }catch(err){
       console.log(err);
       res.status(500).json({error: 'Internal Server Error'})
     }
-  })
+});
   
 
 //Update the person record
@@ -97,7 +120,7 @@ router.delete('/:candidateID',jwtAuthMiddleware, async(req, res)=>{
 
         if(!response){
             return res.status(404).json({error: 'Person Id not found'});
-        }
+        }c
         console.log('candidate deleted');
         res.status(200).json(response);
 
@@ -134,8 +157,6 @@ router.post('/vote/:candidateID', jwtAuthMiddleware, checkVotingTime, async (req
     const userId = req.user.id;
 
     try{
-
-
         //Find the Candidate document with the specified candidateI
         const candidate = await Candidate.findById(candidateID);
         if(!candidate){
