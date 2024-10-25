@@ -128,7 +128,8 @@ const checkVotingTime = (req, res, next) => {
 
 //Start Voting
 router.post('/vote/:candidateID', jwtAuthMiddleware, checkVotingTime, async (req, res)=>{
-
+    console.log("Voting port working" );
+    
     const candidateID = req.params.candidateID;
     const userId = req.user.id;
 
@@ -165,7 +166,7 @@ router.post('/vote/:candidateID', jwtAuthMiddleware, checkVotingTime, async (req
         console.log(err);
         res.status(500).json({error: 'Internal Server Error'});
     }
-})
+});
 
 
 //vote count
