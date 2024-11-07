@@ -37,3 +37,16 @@ Admin candidate Management
          candidates: PUT - add the name of candidates
          candidate/candidateID: PUT - update the existing candidate
          candidate/candidateID: DELETE - delete the existing candidate
+
+-------------------------
+FIXES
+1. Admin will only be created only using Seeder
+2. Response -> of a standard nature and structure of it will remain same irrespective of the response type.
+3. Define seeders  
+
+SERVICES        ✅
+CONTROLLERS     ✅
+ERROR HANDLING  
+LOGGING
+
+Readme file and ENV examples file

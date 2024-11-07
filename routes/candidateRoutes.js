@@ -1,134 +1,49 @@
 const express = require('express');
 const router = express.Router();
-const User = require('./../models/user');
+const User = require('../models/user');
 const Candidate = require('./../models/candidate');
 const {jwtAuthMiddleware} = require('./../jwt');
+const{allCandidates, addCandidate, updateCandidateData, deleteCandidate, votes} = require('../controllers/candidate.controller');
 
-//Check whether the user is Admin or not
-const checkAdminRole = async (userId) => {
-    
+const checkUserWard = async(userId)=>{
     try{
-        const user = await User.findById(userId)
-        if(user && user.role === 'admin'){
-            return true;
-        }
-        return false
+        const user = await User.findById(userId);
+        return user ? user.ward : null;
     }catch(err){
+        console.error("Error fetching user ward:", err);
+        return null;        
+    }
+}
+
+const CandidateWard = Candidate.ward;
+const isSimilarWard = async(req, res, next)=>{
+    try{
+        const userWard = await checkUserWard(req.user.id);
+        const candidateWard = req.body.ward;
+        if(userWard === candidateWard){
+            next();
+        }else{
+            return res.status(400).json({message: "user ward and candidate ward are different"})
+        }
+    }catch (error) {
+        console.error("Error checking wards:", error);
         return false;
     }
-};
+}
 
-const checkCandidateWard = async(ward, party)=>{
-    try{
-        const existingCandidate = await Candidate.findOne({ ward , party});
-        if(existingCandidate){
-            return {exists:true, message: "the candidate from this ward already exist."}
-        }else{
-            return {exists: false}
-        }
-    }catch(err){
-        console.log(err);
-        return err
-    }
-};
 
 //Get all the candidates with their Name and party
-router.get('/candidatesList', async(req, res)=>{
-
-    try {
-        
-        const candidates = await Candidate.find({}, 'name party -_id');
-
-        // Return the list of candidates
-        res.status(200).json(candidates);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Internal Server error" });
-    }
-});
+router.route('/candidatesList').get(allCandidates);
 
 
 //POST route method to add a candidate
-router.post('/', jwtAuthMiddleware,
-     async(req, res)=>{
-    try{
-
-        //Only Admin can register a candidate
-        const isAdmin = await checkAdminRole(req.user.id);
-        if(!isAdmin){
-            return res.status(403).json({message: 'user has not admin role'});
-        }
-
-        const {ward, party,  ...otherData} = req.body //assuming request body contain candidate data
-
-        //Check if a Candidate already exist from that ward.
-        const checkWard = await checkCandidateWard(ward, party);
-        if (checkWard.exists) {
-            return res.status(400).json({ message: checkWard.message });
-        }
-
-      //Create a new Candidate document using the Mongoose model
-        const newCandidate = new Candidate({ward,party,  ...otherData});
-      
-      // Save the new User to the database
-        const response = await newCandidate.save();
-        console.log('Data saved');
-        res.status(200).json({response: response});
-    }catch(err){
-      console.log(err);
-      res.status(500).json({error: 'Internal Server Error'})
-    }
-});
-  
+router.route('/').post(jwtAuthMiddleware, addCandidate);
 
 //Update the person record
-router.put('/:candidateID',jwtAuthMiddleware, async(req, res)=>{
-    try{
-        if(!checkAdminRole(req.user.id))
-            return res.status(403).json({message: `user don't has admin role`});
-
-        const candidateId = req.params.candidateID;
-        const updateCandidateData = req.body;
-
-        const response = await Person.findByIdAndUpdate(personId, updateCandidateData,{
-            new: true, // Return the updated document
-            runValidators: true // Run mongoose validation
-        })
-        if(!response){
-            return res.status(404).json({error: 'Person Id not found'});
-        }
-        console.log('candidate data Updated');
-        res.status(200).json(response);
-
-    }catch(err){
-        console.log(err);
-        res.status(500).json({error: 'Internal Server Error'});
-    }
-})
-
+router.route('/:candidateID').put(jwtAuthMiddleware, updateCandidateData);
 
 //Delete the candidate
-router.delete('/:candidateID',jwtAuthMiddleware, async(req, res)=>{
-    try{
-        if(!checkAdminRole(req.user.id))
-            return res.status(403).json({message: 'user has not admin role'});
-
-        const candidateId = req.params.candidateID;
-        const updateCandidateData = req.body;
-
-        const response = await Candidate.findByIdAndDelete(candidateId);
-
-        if(!response){
-            return res.status(404).json({error: 'Person Id not found'});
-        }c
-        console.log('candidate deleted');
-        res.status(200).json(response);
-
-    }catch(err){
-        console.log(err);
-        res.status(500).json({error: 'Internal Server Error'});
-    }
-})
+router.route('/:candidateId').delete(jwtAuthMiddleware, deleteCandidate);
 
 //Check the time whether it is right time to vote or not
 const checkVotingTime = (req, res, next) => {
@@ -138,7 +53,7 @@ const checkVotingTime = (req, res, next) => {
     const startTime = new Date();
     const endTime = new Date();
     
-    startTime.setHours(18, 0, 0); // 6:00 PM
+    startTime.setHours(11, 0, 0); // 11:00 AM
     endTime.setHours(18, 30, 0);  // 6:30 PM
 
     // Check if the current time is within the voting window
@@ -151,7 +66,6 @@ const checkVotingTime = (req, res, next) => {
 
 //Start Voting
 router.post('/vote/:candidateID', jwtAuthMiddleware, checkVotingTime, async (req, res)=>{
-    console.log("Voting port working" );
     
     const candidateID = req.params.candidateID;
     const userId = req.user.id;
@@ -173,6 +87,10 @@ router.post('/vote/:candidateID', jwtAuthMiddleware, checkVotingTime, async (req
         if(user.isVoted){
             res.status(400).json({message: 'admin is not allowed'});
         }
+        const sameWard = await isSimilarWard(userId, candidateID);
+        if(sameWard){
+            return res.status(403).json({ message: 'Voter is from a different ward' });
+        }
         //Update the Candidate document to record the vote
         candidate.votes.push({user: userId})
         candidate.voteCount++;
@@ -189,27 +107,8 @@ router.post('/vote/:candidateID', jwtAuthMiddleware, checkVotingTime, async (req
     }
 });
 
-
 //vote count
-router.get('/votes/count', async (req, res)=>{
-    try{
-        //Find all candidate and sort them by voteCount in descending order
-        const candidate = await Candidate.find().sort({voteCount: 'desc'});
-
-        //Map the candidate to only return their name and voteCount
-        const voteRecord = candidate.map((data)=>{
-            return {
-                party: data.party,
-                count: data.voteCount
-            }
-        });
-        return res.status(200).json(voteRecord);
-    }catch(err){
-        console.log(err);
-        res.status(500).json({error: 'Internal Server Error'});
-    }
-})
-
+router.route('/votes/count').get(votes);
 
 module.exports = router;
  
