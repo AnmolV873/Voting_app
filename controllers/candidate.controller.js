@@ -1,14 +1,17 @@
 const candidateService = require('../service/candidateServices');
+const SuccessResponse = require('../lib/success.res');
+const ErrorResponse = require('../lib/error.res');
+
 
 //To get list of all the candidate from all the wards
 const allCandidates = async(req, res) => {
     try{
         const candidates = await candidateService.candidateList();
         // Return the list of candidates
-        res.status(200).json(candidates);
+        SuccessResponse.ok(res, 'Candidate successfully created', candidates);
     }catch(err){
         console.error(err);
-        res.status(500).json({ error: "Internal Server error" });
+        ErrorResponse.internalServer('Internal server Error');
     }
 }
 
@@ -25,15 +28,15 @@ const addCandidate = async(req, res)=>{
         //Check if a Candidate already exist from that ward.
         const checkWard = await candidateService.checkCandidateWard(ward, party);
         if (checkWard.exists) {
-            return res.status(400).json({ message: checkWard.message });
+            ErrorResponse.badRequest('The candidate already exist');
         }
 
-      //Create a new Candidate document using the Mongoose model
+        //Create a new Candidate document using the Mongoose model
         const newCandidate = await candidateService.addCandidate({ward,party,  ...otherData});
-        res.status(200).json({response: newCandidate});
+        SuccessResponse.created(res, 'Candidate successfully created', newCandidate);
     }catch(err){
       console.log(err);
-      res.status(500).json({error: 'Internal Server Error'})
+      ErrorResponse.internalServer('Internal server Error');
     }
 }
 
@@ -43,7 +46,7 @@ const updateCandidateData = async(req, res)=>{
     try{
         const admin = await candidateService.checkAdminRole(req.user.id);
         if(!admin)
-            return res.status(403).json({messgae: " You are not the admin"})
+            ErrorResponse.forbidden(" You are not the admin");
        
         const candidateId = req.params.candidateId
         const updateCandidateData = await candidateService.updateCandidate(candidateId, req.body);
@@ -51,10 +54,10 @@ const updateCandidateData = async(req, res)=>{
         if(!updateCandidateData){
             return res.status(404).json({msg: "Candidate ID not found"});
         }
-        res.status(200).json(updatedCandidate);
+        res.status(200).json(updateCandidateData);
     }catch(err){
         console.error(err);
-        res.status(500).json({ error: "Internal Server error" });
+        ErrorResponse.internalServer('Internal server Error');
     }
 }
 
@@ -64,7 +67,7 @@ const  deleteCandidate = async(req, res)=>{
     try{
         const admin = await candidateService.checkAdminRole(req.user.id);
         if(!admin)
-            return res.status(403).json({msg: 'You are not the admin'})
+            ErrorResponse.forbidden(" You are not the admin");
 
         const candidateId = req.params.candidateID;
 
@@ -74,10 +77,10 @@ const  deleteCandidate = async(req, res)=>{
             return res.status(404).json({error: 'Candidate was not found'});
 
         console.log('Candidate Deleted');
-        res.status(200).json(response);
+        SuccessResponse.delete(res, 'Candidate successfully created', response);
     }catch(err){
         console.error(err);
-        res.status(500).json({error: "Internal server error"})        
+        ErrorResponse.internalServer('Internal server Error');        
     }
 }
 
@@ -88,10 +91,10 @@ const votes = async(req, res)=>{
         const voteRecord = await candidateService.getVoteCount();
         
         // Return the vote record as JSON response
-        res.status(200).json(voteRecord);
+        SuccessResponse.ok(res, 'Candidate successfully voted', voteRecord);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Internal Server Error' });
+        ErrorResponse.internalServer('Internal server Error');
     }
 }
 
