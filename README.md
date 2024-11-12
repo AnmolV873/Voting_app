@@ -43,6 +43,29 @@ Start the server:
 
 Copy code -> npm start
 
+## ROUTES
+
+**User Authentication:**
+         /Signin: POST - user is already existing
+         /SignUp: POST - New user created [ aadharcard + password]
+
+**Voting:**
+      /candidate: GET - get the list of candidates
+      /vote/:candidateID :  POST - vote for a specific candidate
+
+**Vote Count:**
+        /votes/ count: GET - get the list of candidate sorted by their number of votes
+
+**User Profile:**
+       profile: GET - get the user info
+       profile/password: PATCH - update password
+    
+
+**Admin candidate Management:**
+         candidates: PUT - add the name of candidates
+         candidate/candidateID: PUT - update the existing candidate
+         candidate/candidateID: DELETE - delete the existing candidate
+
 
     
 ## Lesson Learned

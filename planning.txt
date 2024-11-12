@@ -49,5 +49,5 @@ CONTROLLERS     ✅
 ERROR HANDLING  
 LOGGING
 
-Readme file 
+Readme file        ✅
 ENV examples file  ✅
