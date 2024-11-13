@@ -3,7 +3,7 @@ const SuccessResponse = require('../lib/success.res');
 const ErrorResponse = require('../lib/error.res');
 
 
-//To get list of all the candidate from all the wards
+//To get list of all the candidate from all the wards (GET)
 const allCandidates = async(req, res) => {
     try{
         const candidates = await candidateService.candidateList();
@@ -15,7 +15,7 @@ const allCandidates = async(req, res) => {
     }
 }
 
-//To add the new candidate
+//To add the new candidate  (PUT)
 const addCandidate = async(req, res)=>{
     try{
         //Only Admin can register a candidate
@@ -41,7 +41,7 @@ const addCandidate = async(req, res)=>{
 }
 
 
-//To update the candidate
+//To update the candidate (POST)
 const updateCandidateData = async(req, res)=>{
     try{
         const admin = await candidateService.checkAdminRole(req.user.id);
@@ -62,7 +62,7 @@ const updateCandidateData = async(req, res)=>{
 }
 
 
-//To DELETE the Candidate
+//To DELETE the Candidate (DELETE)
 const  deleteCandidate = async(req, res)=>{
     try{
         const admin = await candidateService.checkAdminRole(req.user.id);

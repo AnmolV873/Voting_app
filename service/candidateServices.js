@@ -1,5 +1,6 @@
 const Candidate = require('../models/candidate');
 const User = require('../models/user');
+const logger = require('../lib/logger');
 
 //Check whether the user is Admin or not
 const checkAdminRole = async (userId) => {
@@ -40,7 +41,7 @@ const candidateList = async()=>{
     }
 }
 
-//ADD a ne w Cnadiadate
+//ADD a new Cnadiadate
 const addCandidate = async(candidateData)=>{
     try{
         const newCandidate = new Candidate(candidateData);

@@ -40,14 +40,14 @@ Admin candidate Management
 
 -------------------------
 FIXES
-1. Admin will only be created only using Seeder
+1. Admin will only be created only using Seeder ✅
 2. Response -> of a standard nature and structure of it will remain same irrespective of the response type.
 3. Define seeders  
 
 SERVICES        ✅
 CONTROLLERS     ✅
-ERROR HANDLING  
-LOGGING
+ERROR HANDLING  ✅
+LOGGING         
 
 Readme file        ✅
 ENV examples file  ✅
